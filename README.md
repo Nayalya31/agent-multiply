@@ -1,6 +1,6 @@
 # FastAPI-прокси к Langflow: умножение чисел
 
-Небольшое приложение на FastAPI. Оно принимает список чисел, собирает из них выражение вида `2.0 * 3.0 * 4.0` и отправляет его в flow Langflow. Ответ Langflow возвращается клиенту.
+Небольшое приложение на FastAPI. Оно принимает список чисел, собирает из них выражение вида `3.0 * 5.0 * 2.0` и отправляет его в flow Langflow. Ответ Langflow возвращается клиенту.
 
 Подходит для локального запуска и для деплоя на Railway (`Procfile`).
 
@@ -20,9 +20,9 @@
 
 ```json
 {
-  "numbers": [2, 3, 4],
-  "user_id": "user-42",
-  "session_id": "multiply-session"
+  "numbers": [3, 5, 2],
+  "user_id": "student_test_01",
+  "session_id": "test_001"
 }
 ```
 
@@ -34,15 +34,15 @@
 
 ```json
 {
-  "input": "2.0 * 3.0 * 4.0",
-  "user_id": "user-42",
-  "auth_used": "bearer",
-  "result_text": "24",
+  "input": "3.0 * 5.0 * 2.0",
+  "user_id": "student_test_01",
+  "auth_used": "x-api-key",
+  "result_text": "30",
   "raw": {}
 }
 ```
 
-`auth_used` показывает, какой заголовок сработал: `bearer` или `x-api-key`. `raw` — полный JSON от Langflow.
+Это ответ на запрос выше: `3 * 5 * 2 = 30`. `auth_used` показывает, какой заголовок сработал: `bearer` или `x-api-key`. `raw` — полный JSON от Langflow; в нём та же сессия `test_001` и текст `30`.
 
 ## Требования
 
@@ -84,7 +84,7 @@ uvicorn main:app --reload --port 8000
 curl http://127.0.0.1:8000/health
 curl -X POST http://127.0.0.1:8000/multiply \
   -H "Content-Type: application/json" \
-  -d '{"numbers":[2,3,4],"user_id":"user-42"}'
+  -d '{"numbers":[3,5,2],"user_id":"student_test_01","session_id":"test_001"}'
 ```
 
 ## Деплой на Railway
