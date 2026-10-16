@@ -5,7 +5,7 @@ import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 # Загружаем переменные из .env (локально). На Railway переменные берутся из Variables.
 load_dotenv()
@@ -65,7 +65,16 @@ async def _shutdown() -> None:
 
 class MultiplyRequest(BaseModel):
     numbers: List[float] = Field(min_length=2)
+    user_id: str = Field(min_length=1, max_length=128)
     session_id: Optional[str] = None
+
+    @field_validator("user_id")
+    @classmethod
+    def _user_id_not_blank(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("user_id must not be blank")
+        return value
 
 
 def _extract_text_from_langflow(resp_json: Dict[str, Any]) -> Optional[str]:
@@ -83,7 +92,7 @@ def _make_auth_headers() -> List[Dict[str, str]]:
     ]
 
 
-async def _run_langflow(input_value: str, session_id: str) -> Tuple[Dict[str, Any], str]:
+async def _run_langflow(input_value: str, session_id: str, user_id: str) -> Tuple[Dict[str, Any], str]:
     url = f"{LANGFLOW_URL}/api/v1/run/{LANGFLOW_FLOW_ID}"
 
     payload: Dict[str, Any] = {
@@ -91,6 +100,7 @@ async def _run_langflow(input_value: str, session_id: str) -> Tuple[Dict[str, An
         "input_type": LANGFLOW_INPUT_TYPE,
         "output_type": LANGFLOW_OUTPUT_TYPE,
         "session_id": session_id,
+        "user_id": user_id,
         "tweaks": None,
     }
 
@@ -158,10 +168,12 @@ async def multiply(req: MultiplyRequest) -> Dict[str, Any]:
     resp_json, auth_used = await _run_langflow(
         input_value=input_value,
         session_id=req.session_id or "multiply-session",
+        user_id=req.user_id,
     )
 
     return {
         "input": input_value,
+        "user_id": req.user_id,
         "auth_used": auth_used,
         "result_text": _extract_text_from_langflow(resp_json),
         "raw": resp_json,

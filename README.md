@@ -21,11 +21,13 @@
 ```json
 {
   "numbers": [2, 3, 4],
+  "user_id": "user-42",
   "session_id": "multiply-session"
 }
 ```
 
 - `numbers` — минимум два числа.
+- `user_id` — обязательный идентификатор пользователя, от 1 до 128 символов. Пробелы по краям отбрасываются. Прокси передаёт его в Langflow в поле `user_id` того же запроса.
 - `session_id` — необязательный идентификатор сессии Langflow. Если его нет, используется `multiply-session`.
 
 Пример ответа:
@@ -33,6 +35,7 @@
 ```json
 {
   "input": "2.0 * 3.0 * 4.0",
+  "user_id": "user-42",
   "auth_used": "bearer",
   "result_text": "24",
   "raw": {}
@@ -81,7 +84,7 @@ uvicorn main:app --reload --port 8000
 curl http://127.0.0.1:8000/health
 curl -X POST http://127.0.0.1:8000/multiply \
   -H "Content-Type: application/json" \
-  -d '{"numbers":[2,3,4]}'
+  -d '{"numbers":[2,3,4],"user_id":"user-42"}'
 ```
 
 ## Деплой на Railway
